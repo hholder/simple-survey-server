@@ -51,9 +51,17 @@ async function saveSurvey(req, rsp) {
     await client.connect();
     var db = client.db('simple-survey');
     var surveys = db.collection('surveys');
-    var surveyId = await surveys.count() + 1;
+    
+    var surveyId = 1;
+
+    var result = await surveys.find().sort({surveyId: -1}).limit(1).toArray();
+    if(result.length == 1) {
+      surveyId = result[0].surveyId + 1;
+    }
+
     var status = await surveys.insertOne({
       surveyId: surveyId,
+      isActive: true,
       survey: survey
     });
 
@@ -66,8 +74,6 @@ async function saveSurvey(req, rsp) {
     console.log(ex);
     rsp.send(500);
   }
-
-  rsp.close();
 }
 
 module.exports = router;
